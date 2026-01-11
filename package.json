@@ -4,9 +4,17 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "dotenv": "^17.2.3",
+    "@prisma/client": "^7.2.0",
+    "@prisma/config": "^7.2.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.2.0"
   }
 }

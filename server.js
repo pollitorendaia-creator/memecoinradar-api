@@ -1,4 +1,6 @@
 import express from "express";
+import { prisma } from "./src/prisma.js";
+import { updateTokensAndAlerts } from "./src/jobs.js";
 
 const app = express();
 app.use(express.json());
@@ -7,29 +9,49 @@ app.get("/health", (req, res) => {
   res.json({ ok: true, service: "memecoinradar-api", ts: new Date().toISOString() });
 });
 
-// MVP endpoint (placeholder) to validate frontend <-> backend integration
-app.get("/api/tokens", (req, res) => {
+app.get("/api/tokens", async (req, res) => {
+  const limit = Number(req.query.limit || 50);
+  const tokens = await prisma.token.findMany({
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+  res.json({ ok: true, tokens });
+});
+
+app.get("/api/alerts", (req, res) => {
   res.json({
     ok: true,
-    tokens: [
+    alerts: [
       {
-        symbol: "PEPE",
-        name: "Pepe",
-        chain: "ETH",
-        priceUsd: 0.00000123,
-        change24hPct: 5.4,
-      },
-      {
-        symbol: "WOJAK",
-        name: "Wojak",
-        chain: "SOL",
-        priceUsd: 0.000045,
-        change24hPct: -2.1,
-      },
-    ],
-    ts: new Date().toISOString(),
+        id: "test-1",
+        type: "TEST",
+        message: "Teste para ETH",
+        createdAt: new Date().toISOString(),
+        token: {
+          symbol: "ETH",
+          chain: "bsc"
+        }
+      }
+    ]
   });
 });
+
+
+app.get("/api/alerts", async (req, res) => {
+  const alerts = await prisma.alert.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: { token: true },
+  });
+  res.json({ ok: true, alerts });
+});
+
+// job simples (loop)
+setInterval(() => {
+  updateTokensAndAlerts().catch(err =>
+    console.error("JOB ERROR:", err.message)
+  );
+}, 60 * 1000); // 1 min
 
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {

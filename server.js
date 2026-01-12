@@ -18,24 +18,6 @@ app.get("/api/tokens", async (req, res) => {
   res.json({ ok: true, tokens });
 });
 
-app.get("/api/alerts", (req, res) => {
-  res.json({
-    ok: true,
-    alerts: [
-      {
-        id: "test-1",
-        type: "TEST",
-        message: "Teste para ETH",
-        createdAt: new Date().toISOString(),
-        token: {
-          symbol: "ETH",
-          chain: "bsc"
-        }
-      }
-    ]
-  });
-});
-
 
 app.get("/api/alerts", async (req, res) => {
   const alerts = await prisma.alert.findMany({
